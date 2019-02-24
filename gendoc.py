@@ -316,7 +316,7 @@ if __name__ == "__main__":
 
     print(pdframe)
     
-    pdframe.to_csv(out, sep="\t")
+    pdframe.to_csv(out, encoding="utf-8", sep="\t")
     
     #for i in range(0, len(all_articles)):
         #out.write("{}\t{}\n".format(all_articles[i], vectors[i]))
