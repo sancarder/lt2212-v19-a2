@@ -2,33 +2,14 @@ import os, sys
 import glob
 import argparse
 import numpy as np
-#import pandas as pd
-#from sklearn.decomposition import TruncatedSVD
-#from sklearn.feature_extraction.text import TfidfTransformer
+import pandas as pd
+from sklearn.decomposition import TruncatedSVD
+from sklearn.feature_extraction.text import TfidfTransformer
 
 # gendoc.py -- Don't forget to put a reasonable amount code comments
 # in so that we better understand what you're doing when we grade!
 
 # add whatever additional imports you may need here
-
-
-
-
-'''
-if args.tfidf:
-    print("Applying tf-idf to raw counts.")
-
-if args.svddims:
-    print("Truncating matrix to {} dimensions via singular value decomposition.".format(args.svddims))
-
-# THERE ARE SOME ERROR CONDITIONS YOU MAY HAVE TO HANDLE WITH CONTRADICTORY
-# PARAMETERS.
-
-print("Writing matrix to {}.".format(args.outputfile))
-'''
-
-
-
 
 
 def load_data(filename):
@@ -142,10 +123,12 @@ def count_vocab(class_documents):
                 else:
                     vocab_counts[word] = 1
             
-    print(vocab_counts)
+    #print(vocab_counts)
     return vocab_counts
 
 def make_unique(vocab_counts):
+
+    #Done for all the words in the corpus
     
     unique = {}
     count = 0
@@ -162,9 +145,9 @@ def build_vectors(class_documents, unique_words, vocab_counts, number):
     #Form of class_documents: {news:{article1:[hej, hopp], article2:[hopp, hej]}}, {fiction:{article1:[hej, hopp], article2:[hopp, hej]}}
     #One vector per article
     
-    #When building vectors, store all vectors regardless of topic, in a list, and for each vector, look if it's in the list already. If it is, don't add it but print it to the terminal (or store in a duplicates list and print list last.
-        
-    vectors = {}
+    vectors = []
+    all_articles = []
+    
     print(len(vocab_counts), len(unique_words))
     #First, sort the dictionary unique_words so that it goes from 0-n (by value)
 
@@ -188,11 +171,50 @@ def build_vectors(class_documents, unique_words, vocab_counts, number):
                     
                 
             #Check here if vector is a duplicate! 
-                
-            vectors[art] = vector
+            if vector not in vectors:
+                vectors.append(vector)
+                all_articles.append(art)
+            else:
+                print("Dropped duplicate vector {}".format(art))    
+
+    vector_array = np.array(vectors)
+    #print(vector_array)
+    print(vector_array.shape)
+
+    #print(vectors)
+    return vector_array, all_articles
+
+def apply_tdidf(matrix):
+
     
-    print(vectors)
-    return vectors
+    tfidf_transformer = TfidfTransformer()
+    tfidf_data = tfidf_transformer.fit_transform(matrix)
+
+    #print(tfidf_data)
+    #print(type(tfidf_data))
+    print(tfidf_data.shape)
+
+    return tfidf_data
+
+
+def apply_svddims(matrix, dimension):
+
+    TS = TruncatedSVD(dimension)
+
+    svd = TS.fit_transform(matrix)
+
+    #print(svd)
+    print(svd.shape)
+    
+    return svd
+
+
+def make_pdframe(vectors):
+
+    dataframe = pd.DataFrame(vectors)
+    
+    return dataframe
+
 
 def preprocess(textfile):
     
@@ -272,13 +294,31 @@ if __name__ == "__main__":
     else:
         print("Using only top {} terms by raw count.".format(args.basedims))
     
-    vectors = build_vectors(class_documents, unique_words, vocab_counts, args.basedims)
-                
+    vectors, all_articles = build_vectors(class_documents, unique_words, vocab_counts, args.basedims)
+
+    if args.tfidf:
+        print("Applying tf-idf to raw counts.")
+        tdidf_data = apply_tdidf(vectors)
+
+    if args.svddims:
+        print("Truncating matrix to {} dimensions via singular value decomposition.".format(args.svddims))
+        svd = apply_svddims(vectors, args.svddims)
+        
+    pdframe = make_pdframe(vectors)
+
     #Prints the matrix to the specified output file
     print("Writing matrix to {}.".format(args.outputfile))
-    out = open(args.outputfile, 'w')
-    for vector in vectors:
-        out.write("{}: {}\n".format(vector, vectors[vector]))
 
+    out = open(args.outputfile, 'w')
+
+    pdframe.columns = list(unique_words)
+    pdframe.index = all_articles
+
+    print(pdframe)
     
+    pdframe.to_csv(out, sep="\t")
     
+    #for i in range(0, len(all_articles)):
+        #out.write("{}\t{}\n".format(all_articles[i], vectors[i]))
+
+    out.close()
