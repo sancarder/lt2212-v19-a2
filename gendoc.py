@@ -128,7 +128,7 @@ def count_vocab(class_documents):
 
 def make_unique(vocab_counts):
 
-    #Done for all the words in the corpus
+    #Done for all the words in the corpus or the limited set chosen by the user
     
     unique = {}
     count = 0
@@ -140,15 +140,26 @@ def make_unique(vocab_counts):
     #print(unique)
     return unique
 
-def build_vectors(class_documents, unique_words, vocab_counts, number):
+def limit_vocab(vocab_counts, number):
+    limited_vocab = {}
+
+    for x in vocab_counts:
+        if vocab_counts[x] > number:
+            limited_vocab[x] = vocab_counts[x]
+    
+    return limited_vocab
+
+
+def build_vectors(class_documents, unique_words, vocab_counts):
     #Builds vectors out of the two classes
     #Form of class_documents: {news:{article1:[hej, hopp], article2:[hopp, hej]}}, {fiction:{article1:[hej, hopp], article2:[hopp, hej]}}
     #One vector per article
     
     vectors = []
     all_articles = []
+    all_words = []
     
-    print(len(vocab_counts), len(unique_words))
+    #print(len(vocab_counts), len(unique_words))
     #First, sort the dictionary unique_words so that it goes from 0-n (by value)
 
     for topic in class_documents:
@@ -161,14 +172,33 @@ def build_vectors(class_documents, unique_words, vocab_counts, number):
             #print(article_content)
     
             for word in unique_words:
-                i = unique_words[word]
+                #i = unique_words[word]
+
+                vector.append(article_content.count(word)) #counts in the article
                 
-                #Considers the -B argument
+                #Considers the -B argument - this should be done in the vocab_counts (see Asad's example - for the whole corups, not per document), you want to look at the words that occur many times in the whole crpus, and then see how frequent they are in the resp doc. Try make a list of these words before this method, an own method that is triggered if B is set and use that list as argument to this method instead. 
+
+                '''
                 if number != None and article_content.count(word) > number:
+                    print("appending just " + str(number) + "counts")
                     vector.append(article_content.count(word)) #counts in the article
                 else:
+                    print("appending all counts")
                     vector.append(article_content.count(word)) #counts in the article
-                    
+                
+
+                if number==None:
+                    print("Appending all counts")
+                    vector.append(article_content.count(word))
+                    all_words.append(word)
+                else:
+                    if article_content.count(word) > number:
+                        print("Word has count: " + str(article_content.count(word)))
+                        vector.append(article_content.count(word))
+                    else:
+                        print("Word count TOO LOW")
+                        pass
+                '''
                 
             #Check here if vector is a duplicate! 
             if vector not in vectors:
@@ -192,7 +222,7 @@ def apply_tdidf(matrix):
 
     #print(tfidf_data)
     #print(type(tfidf_data))
-    print(tfidf_data.shape)
+    #print(tfidf_data.shape)
 
     return tfidf_data
 
@@ -204,7 +234,7 @@ def apply_svddims(matrix, dimension):
     svd = TS.fit_transform(matrix)
 
     #print(svd)
-    print(svd.shape)
+    #print(svd.shape)
     
     return svd
 
@@ -286,16 +316,21 @@ if __name__ == "__main__":
     vocab_counts = count_vocab(class_documents)
     
     #Make a unique dictionary
-    unique_words = make_unique(vocab_counts)
-    
-    #Build vectors
     if not args.basedims:
         print("Using full vocabulary.")
+        unique_words = make_unique(vocab_counts)
     else:
         print("Using only top {} terms by raw count.".format(args.basedims))
+        limited_vocab = limit_vocab(vocab_counts, args.basedims)
+        unique_words = make_unique(limited_vocab)
     
-    vectors, all_articles = build_vectors(class_documents, unique_words, vocab_counts, args.basedims)
+    #Build vectors
+    vectors, all_articles = build_vectors(class_documents, unique_words, vocab_counts)
+    
+    #vectors, all_articles = build_vectors(class_documents, unique_words, limited_vocab)    
+    #vectors, all_articles = build_vectors(class_documents, unique_words, vocab_counts, args.basedims)
 
+    
     if args.tfidf:
         print("Applying tf-idf to raw counts.")
         tdidf_data = apply_tdidf(vectors)
@@ -315,8 +350,10 @@ if __name__ == "__main__":
     pdframe.index = all_articles
 
     print(pdframe)
+
+    #Use max counts bla bla to show all data in the rows, might help with the simdoc input reading
     
-    pdframe.to_csv(out, encoding="utf-8", sep="\t")
+    pdframe.to_csv(out, encoding="utf-8")
     
     #for i in range(0, len(all_articles)):
         #out.write("{}\t{}\n".format(all_articles[i], vectors[i]))
