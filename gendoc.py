@@ -20,10 +20,10 @@ def load_data(filename):
     
     return doc
 
+
 def browse_data(folder):
-    
-    #Removing possible slashes at the end
-    folder.strip('/')
+
+    print(folder)
     
     subfolders = os.listdir(folder)
     
@@ -35,15 +35,16 @@ def browse_data(folder):
     subfolder_texts = {}
         
     for sub in subfolders:
-        classtexts = {} 
-        articles = os.listdir(folder+'/'+sub)
+        classtexts = {}
+        subpath = folder+sub
+        articles = os.listdir(subpath)
         
         if '.DS_Store' in articles:
             aindex = articles.index('.DS_Store')
             articles.pop(aindex)
         
         for art in articles:
-            filename = '/'.join([folder, sub, art])
+            filename = '/'.join([subpath, art])
             document = load_data(filename)
             processed_document = preprocess(document)
             classtexts[filename] = processed_document
@@ -103,7 +104,7 @@ def limit_vocab(vocab_counts, number):
     return limited_vocab
 
 
-def build_vectors(class_documents, unique_words, vocab_counts):
+def build_vectors(class_documents, unique_words):
     #Builds vectors out of the two classes
     #Form of class_documents: {news:{article1:[hej, hopp], article2:[hopp, hej]}}, {fiction:{article1:[hej, hopp], article2:[hopp, hej]}}
     #One vector per article
@@ -111,7 +112,8 @@ def build_vectors(class_documents, unique_words, vocab_counts):
     vectors = []
     all_articles = []
     
-    #First, sort the dictionary unique_words so that it goes from 0-n (by value)
+    #Sort the dictionary unique_words into a list by index value with lowest value first
+    sorted_unique_words = sorted(unique_words, key=unique_words.get)
 
     for topic in class_documents:
         articles = class_documents[topic]
@@ -120,7 +122,7 @@ def build_vectors(class_documents, unique_words, vocab_counts):
             vector = []
             article_content = articles[art] #list of the words in the article
                
-            for word in unique_words:
+            for word in sorted_unique_words:
 
                 vector.append(article_content.count(word)) #counts in the article
                                 
@@ -191,7 +193,12 @@ def preprocess(textfile):
 
 
 def print_matrix(outputfile, vectors, unique_words, all_articles):
-    
+
+    if outputfile.endswith('.txt'):
+        filename = outputfile.split('.')[0]
+        outputfile = filename+'.csv'
+        print("Transforming your given output file to csv format: {}".format(outputfile))
+        
     out = open(outputfile, 'w')
     
     #Makes a panda dataframe
@@ -201,7 +208,7 @@ def print_matrix(outputfile, vectors, unique_words, all_articles):
     
     #Prints to a csv file
     pdframe.to_csv(out, encoding="utf-8")
-    
+        
     out.close()
 
 
@@ -241,38 +248,34 @@ if __name__ == "__main__":
     #Parses the arguments from the command line
     args = parse_arguments(argparse.ArgumentParser(description="Generate term-document matrix."))
     
-    if outputfile.endswith('.csv'):
-    
-        #Open the files and creates the corpus
-        print("Loading data from directory {}.".format(args.foldername))    
-        class_documents = browse_data(args.foldername)
-            
-        #Count words
-        vocab_counts = count_vocab(class_documents)
+    #Open the files and creates the corpus
+    print("Loading data from directory {}.".format(args.foldername))    
+    class_documents = browse_data(args.foldername)
+           
+    #Count words
+    vocab_counts = count_vocab(class_documents)
         
-        #Make a unique dictionary
-        if not args.basedims:
-            print("Using full vocabulary.")
-            unique_words = make_unique(vocab_counts)
-        else:
-            print("Using only top {} terms by raw count.".format(args.basedims))
-            limited_vocab = limit_vocab(vocab_counts, args.basedims)
-            unique_words = make_unique(limited_vocab)
-        
-        #Build vectors
-        vectors, all_articles = build_vectors(class_documents, unique_words)
-        
-        if args.tfidf:
-            print("Applying tf-idf to raw counts.")
-            vectors = apply_tdidf(vectors)
-
-        if args.svddims:
-            print("Truncating matrix to {} dimensions via singular value decomposition.".format(args.svddims))
-            svd = apply_svddims(vectors, args.svddims)
-            
-        #Prints the matrix to the specified output file
-        print("Writing matrix to {}.".format(args.outputfile))
-        print_matrix(args.outputfile, vectors, unique_words, all_articles)
-
+    #Make a unique dictionary
+    if not args.basedims:
+        print("Using full vocabulary.")
+        unique_words = make_unique(vocab_counts)
     else:
-        print("You need to specify your output file in csv format")
+        print("Using only top {} terms by raw count.".format(args.basedims))
+        limited_vocab = limit_vocab(vocab_counts, args.basedims)
+        unique_words = make_unique(limited_vocab)
+        
+    #Build vectors
+    vectors, all_articles = build_vectors(class_documents, unique_words)
+    
+    if args.tfidf:
+        print("Applying tf-idf to raw counts.")
+        tfidf = apply_tdidf(vectors)
+        vectors = tfidf.toarray()
+
+    if args.svddims:
+        print("Truncating matrix to {} dimensions via singular value decomposition.".format(args.svddims))
+        svd = apply_svddims(vectors, args.svddims)
+            
+    #Prints the matrix to the specified output file
+    print("Writing matrix to {}.".format(args.outputfile))
+    print_matrix(args.outputfile, vectors, unique_words, all_articles)

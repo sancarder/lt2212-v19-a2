@@ -88,9 +88,9 @@ def ave_x_sim(matrix, topic):
     average = simsum/comparecount
 
     print("Values for {}".format(topic))
-    print("**********")
-    print("Sum: {}".format(simsum))
-    print("Nr of comparisions: {}".format(comparecount))
+    #print("**********")
+    #print("Sum: {}".format(simsum))
+    #print("Nr of comparisions: {}".format(comparecount))
     print("Average: {}".format(average))
     print()
 
@@ -98,7 +98,7 @@ def ave_xy_sim(matrix1, matrix2, topic1, topic2):
     
     sim_table = cosine_similarity(matrix1, matrix2)
 
-    print(sim_table)
+    #print(sim_table)
     #print(type(sim_table))
 
     
@@ -114,9 +114,9 @@ def ave_xy_sim(matrix1, matrix2, topic1, topic2):
     
     
     print("Comparing {} to {}:".format(topic1, topic2))
-    print("**********")
-    print("Sum: {}".format(simsum))
-    print("Nr of comparisions: {}".format(comparecount))
+    #print("**********")
+    #print("Sum: {}".format(simsum))
+    #print("Nr of comparisions: {}".format(comparecount))
     print("Average: {}".format(average))
     print()
     
@@ -147,12 +147,13 @@ if __name__ == "__main__":
 
     crude_vectors, grain_vectors = extract_topics(vectors)
 
-    #ave_x_sim(crude_vectors, 'crude')
-    #ave_x_sim(grain_vectors, 'grain')
+    ave_x_sim(crude_vectors, 'crude')
+    ave_x_sim(grain_vectors, 'grain')
 
-    #ave_xy_sim(crude_vectors, grain_vectors, 'crude', 'grain')
-    #ave_xy_sim(grain_vectors, crude_vectors, 'grain', 'crude')
-    
+    ave_xy_sim(crude_vectors, grain_vectors, 'crude', 'grain')
+    ave_xy_sim(grain_vectors, crude_vectors, 'grain', 'crude')
+
+    '''
     #Testdata
     pdtest1 = pd.DataFrame([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
     pdtest2 = pd.DataFrame([[3, 3, 3], [2, 2, 2], [1, 1, 1]])
@@ -161,3 +162,4 @@ if __name__ == "__main__":
     #ave_x_sim(nptest1, 'test')
     ave_xy_sim(nptest1, nptest2, 'test1', 'test2')
     ave_xy_sim(nptest2, nptest1, 'test2', 'test1')
+    '''
