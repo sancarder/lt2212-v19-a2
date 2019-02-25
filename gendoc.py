@@ -6,11 +6,7 @@ import pandas as pd
 from sklearn.decomposition import TruncatedSVD
 from sklearn.feature_extraction.text import TfidfTransformer
 
-# gendoc.py -- Don't forget to put a reasonable amount code comments
-# in so that we better understand what you're doing when we grade!
-
-# add whatever additional imports you may need here
-
+# gendoc.py 
 
 def load_data(filename):
         
@@ -55,14 +51,8 @@ def browse_data(folder):
 
 
 def count_vocab(class_documents):
-    #Count the vocabulary for the whole structure by splitting into words and counting them
-    #Can this be done smoother? By using count? In that case, transform the corpus into one string?
-    #Now this is done for both tuples in the corpus (classes), should it be counted for each? 
     
-    #Form of class_documents: {news:{article1:[hej, hopp], article2:[hopp, hej]}}, {fiction:{article1:[hej, hopp], article2:[hopp, hej]}}
-    
-    #Goal: to put all words into one corpus so that you can count the vocab and get the unique words
-    #For the vector building you need to keep track of each article again
+    #Puts all word type into a vocabulary with their frequency in the corpus
             
     vocab_counts = {}
     
@@ -82,6 +72,7 @@ def count_vocab(class_documents):
 
 def make_unique(vocab_counts):
 
+    #Creates a dictionary of all words with a unique index number
     #Done for all the words in the corpus or the limited set chosen by the user
     
     unique = {}
@@ -95,6 +86,10 @@ def make_unique(vocab_counts):
 
 
 def limit_vocab(vocab_counts, number):
+
+    #Selects only words with a corpus frequency higher
+    #than the user's choice
+    
     limited_vocab = {}
 
     for x in vocab_counts:
@@ -106,8 +101,7 @@ def limit_vocab(vocab_counts, number):
 
 def build_vectors(class_documents, unique_words):
     #Builds vectors out of the two classes
-    #Form of class_documents: {news:{article1:[hej, hopp], article2:[hopp, hej]}}, {fiction:{article1:[hej, hopp], article2:[hopp, hej]}}
-    #One vector per article
+     #One vector per article
     
     vectors = []
     all_articles = []
@@ -139,28 +133,27 @@ def build_vectors(class_documents, unique_words):
 
 
 def apply_tdidf(matrix):
-    
+
+    #Applies tf-idf on the matrix
     tfidf_transformer = TfidfTransformer()
     tfidf_data = tfidf_transformer.fit_transform(matrix)
-
-    #print(tfidf_data)
 
     return tfidf_data
 
 
 def apply_svddims(matrix, dimension):
 
+    #Applies truncated SVD on the matrix with a given dimension
     TS = TruncatedSVD(dimension)
 
     svd = TS.fit_transform(matrix)
-
-    #print(svd)
     
     return svd
 
 
 def make_pdframe(vectors):
 
+    #Make a Panda Dataframe of the vectors
     dataframe = pd.DataFrame(vectors)
     
     return dataframe
@@ -178,8 +171,6 @@ def preprocess(textfile):
     
     """       
     
-    #Regular expression here?
-    
     #Making the text lowercase
     text = textfile.lower()
     
@@ -194,6 +185,7 @@ def preprocess(textfile):
 
 def print_matrix(outputfile, vectors, unique_words, all_articles):
 
+    #Make sure the file will be a csv file
     if outputfile.endswith('.txt'):
         filename = outputfile.split('.')[0]
         outputfile = filename+'.csv'
@@ -266,12 +258,14 @@ if __name__ == "__main__":
         
     #Build vectors
     vectors, all_articles = build_vectors(class_documents, unique_words)
-    
+
+    #Applies tf-idf
     if args.tfidf:
         print("Applying tf-idf to raw counts.")
         tfidf = apply_tdidf(vectors)
         vectors = tfidf.toarray()
 
+    #Applies SVD
     if args.svddims:
         print("Truncating matrix to {} dimensions via singular value decomposition.".format(args.svddims))
         svd = apply_svddims(vectors, args.svddims)
