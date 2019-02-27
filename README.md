@@ -10,14 +10,16 @@ You can choose a output file in .txt format but the script will transform it int
 
 ## File naming convention
 
-1.csv - no vocabulary restriction and no other transformations
-2.csv - vocabulary restriction and no other transformations
-3.csv - no vocabulary restriction and tf-idf applied
-4.csv - vocabulary restriction and tf-idf applied
-5.csv - no vocabulary restriction and truncated SVD applied to 100 dimensions
-6.csv - no vocabulary restriction and truncated SVD applied to 1000 dimensions
-7.csv - no vocabulary restriction, tf-idf applied and truncated SVD applied to 100 dimensions
-8.csv - no vocabulary restriction, tf-idf applied and truncated SVD applied to 1000 dimensions
+|       | Features                                                                               |
+|-------|----------------------------------------------------------------------------------------|
+| 1.csv | no vocabulary restriction and no other transformations                                 |
+| 2.csv | vocabulary restriction and no other transformations                                    |
+| 3.csv | no vocabulary restriction and tf-idf applied                                           |
+| 4.csv | vocabulary restriction and tf-idf applied                                              |
+| 5.csv | no vocabulary restriction and truncated SVD applied to 100 dimensions                  |
+| 6.csv | no vocabulary restriction and truncated SVD applied to 1000 dimensions                 |
+| 7.csv | no vocabulary restriction, tf-idf applied and truncated SVD applied to 100 dimensions  |
+| 8.csv | no vocabulary restriction, tf-idf applied and truncated SVD applied to 1000 dimensions |
 
 ## Results and discussion
 
