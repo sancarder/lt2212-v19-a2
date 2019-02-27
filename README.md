@@ -25,7 +25,7 @@ You can choose a output file in .txt format but the script will transform it int
 
 ### Vocabulary restriction.
 
-The vocabulary restriction for output file (2) and (4) is 500, meaning that only words that occur more frequently than 500 times in the corpus. I chose this number to filter out many low-frequent words but still keep frequent words that are not only stopwords.
+The vocabulary restriction for output file (2) and (4) is 500, meaning that only words that occur more frequently than 500 times in the corpus. I chose this number to filter out many low-frequent words but still keep frequent words that are not only stopwords. My pre-processing only includes filtering out punctuations and lower-casing words; stop words are not removed. 
 
 ### Result table
 
