@@ -183,7 +183,7 @@ def preprocess(textfile):
     return words
 
 
-def print_matrix(outputfile, vectors, unique_words, all_articles):
+def print_matrix(outputfile, vectors, unique_words, all_articles, is_svd):
 
     #Make sure the file will be a csv file
     if outputfile.endswith('.txt'):
@@ -195,8 +195,10 @@ def print_matrix(outputfile, vectors, unique_words, all_articles):
     
     #Makes a panda dataframe
     pdframe = make_pdframe(vectors)
-    pdframe.columns = list(unique_words)
     pdframe.index = all_articles
+
+    if not is_svd:
+        pdframe.columns = list(unique_words)
     
     #Prints to a csv file
     pdframe.to_csv(out, encoding="utf-8")
@@ -236,7 +238,9 @@ def parse_arguments(parser):
 
 
 if __name__ == "__main__":
-        
+
+    is_svd = False
+    
     #Parses the arguments from the command line
     args = parse_arguments(argparse.ArgumentParser(description="Generate term-document matrix."))
     
@@ -268,8 +272,9 @@ if __name__ == "__main__":
     #Applies SVD
     if args.svddims:
         print("Truncating matrix to {} dimensions via singular value decomposition.".format(args.svddims))
-        svd = apply_svddims(vectors, args.svddims)
+        vectors = apply_svddims(vectors, args.svddims)
+        is_svd = True
             
     #Prints the matrix to the specified output file
     print("Writing matrix to {}.".format(args.outputfile))
-    print_matrix(args.outputfile, vectors, unique_words, all_articles)
+    print_matrix(args.outputfile, vectors, unique_words, all_articles, is_svd)
